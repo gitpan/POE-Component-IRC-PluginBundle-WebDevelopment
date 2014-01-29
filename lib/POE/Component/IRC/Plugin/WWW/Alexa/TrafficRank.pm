@@ -3,7 +3,7 @@ package POE::Component::IRC::Plugin::WWW::Alexa::TrafficRank;
 use warnings;
 use strict;
 
-our $VERSION = '1.001001'; # VERSION
+our $VERSION = '2.001001'; # VERSION
 
 use base 'POE::Component::IRC::Plugin::BasePoCoWrap';
 use POE::Component::WWW::Alexa::TrafficRank;

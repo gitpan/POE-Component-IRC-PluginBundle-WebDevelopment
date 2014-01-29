@@ -48,7 +48,6 @@ lib/POE/Component/IRC/PluginBundle/WebDevelopment.pm
 t/00-compile.t
 xt/author/pod-spell.t
 xt/author/test-eol.t
-xt/kwalitee.t
 xt/release/cpan-changes.t
 xt/release/dist-manifest.t
 xt/release/distmeta.t

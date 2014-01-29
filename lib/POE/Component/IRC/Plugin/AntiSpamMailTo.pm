@@ -3,7 +3,7 @@ package POE::Component::IRC::Plugin::AntiSpamMailTo;
 use warnings;
 use strict;
 
-our $VERSION = '1.001001'; # VERSION
+our $VERSION = '2.001001'; # VERSION
 
 use HTML::Entities;
 use base 'POE::Component::IRC::Plugin::BaseWrap';
