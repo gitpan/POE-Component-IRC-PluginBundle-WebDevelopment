@@ -13,6 +13,8 @@ my @files = (
     'lib/POE/Component/IRC/Plugin/CSS/PropertyInfo.pm',
     'lib/POE/Component/IRC/Plugin/CSS/PropertyInfo/Data.pm',
     'lib/POE/Component/IRC/Plugin/CSS/SelectorTools.pm',
+    'lib/POE/Component/IRC/Plugin/ColorNamer.pm',
+    'lib/POE/Component/IRC/Plugin/Google/PageRank.pm',
     'lib/POE/Component/IRC/Plugin/HTML/AttributeInfo.pm',
     'lib/POE/Component/IRC/Plugin/HTML/AttributeInfo/Data.pm',
     'lib/POE/Component/IRC/Plugin/HTML/HTML/ElementInfo.pm',

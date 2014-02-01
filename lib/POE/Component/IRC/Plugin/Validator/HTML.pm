@@ -3,7 +3,7 @@ package POE::Component::IRC::Plugin::Validator::HTML;
 use warnings;
 use strict;
 
-our $VERSION = '2.001001'; # VERSION
+our $VERSION = '2.001002'; # VERSION
 
 use POE::Component::WebService::Validator::HTML::W3C;
 use base 'POE::Component::IRC::Plugin::BasePoCoWrap';

@@ -3,7 +3,7 @@ package POE::Component::IRC::PluginBundle::WebDevelopment;
 use strict;
 use warnings;
 
-our $VERSION = '2.001001'; # VERSION
+our $VERSION = '2.001002'; # VERSION
 
 q|
 Programming is 10% science, 20% ingenuity, and 70% getting the
@@ -31,11 +31,15 @@ L<POE::Component::IRC> plugins:
 
 =item * L<POE::Component::IRC::Plugin::BrowserSupport> lookup browser support for CSS/HTML/JS
 
+=item * L<POE::Component::IRC::Plugin::ColorNamer> tells the name of the color by its hex code
+
 =item * L<POE::Component::IRC::Plugin::CSS::Minifier> "minify" CSS code
 
 =item * L<POE::Component::IRC::Plugin::CSS::PropertyInfo> lookup CSS property information
 
 =item * L<POE::Component::IRC::Plugin::CSS::SelectorTools> couple of CSS selector tools
+
+=item * L<POE::Component::IRC::Plugin::Google::PageRank> non-blocking access to Google's PageRank via IRC
 
 =item * L<POE::Component::IRC::Plugin::HTML::AttributeInfo> HTML attribute info lookup
 

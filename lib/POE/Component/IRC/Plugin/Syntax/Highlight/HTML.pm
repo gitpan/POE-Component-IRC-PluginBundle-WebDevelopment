@@ -3,7 +3,7 @@ package POE::Component::IRC::Plugin::Syntax::Highlight::HTML;
 use warnings;
 use strict;
 
-our $VERSION = '2.001001'; # VERSION
+our $VERSION = '2.001002'; # VERSION
 
 use base 'POE::Component::IRC::Plugin::BasePoCoWrap';
 use POE::Component::Syntax::Highlight::HTML;

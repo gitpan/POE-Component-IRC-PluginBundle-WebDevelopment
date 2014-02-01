@@ -1,61 +1,67 @@
-package POE::Component::IRC::Plugin::AntiSpamMailTo;
+package POE::Component::IRC::Plugin::ColorNamer;
 
 use warnings;
 use strict;
 
 our $VERSION = '2.001002'; # VERSION
 
-use HTML::Entities;
+use App::ColorNamer;
 use base 'POE::Component::IRC::Plugin::BaseWrap';
 
 sub _make_default_args {
     return (
-        trigger          => qr/^mailto\s+(?=\S)/i,
-        response_event   => 'irc_antispam_mailto',
-        max_length       => 350,
+        trigger          => qr/^color\s*namer\s+(?=\S+$)/i,
+        response_event   => 'irc_colornamer',
     );
 }
 
 sub _make_response_message {
     my ( $self, $in_ref ) = @_;
 
-    my $prefix = '';
-    if ( $in_ref->{type} eq 'public' ) {
-        $prefix = (split /!/, $in_ref->{who})[0] . ', ';
+    my $is_sane_only = $in_ref->{what} =~ s/^://;
+
+    my $app  = App::ColorNamer->new;
+
+    $app->sane_colors( $self->{sane_colors} )
+        if $self->{sane_colors};
+
+    my $name = $app->get_name( $in_ref->{what}, $is_sane_only );
+
+    my $out;
+    if ( $name ) {
+        $out = "$name->{name} (#$name->{hex}"
+            . ( $name->{exact} ? ', exact match)' : ')' );
+    }
+    else {
+        $out = 'Error: ' . $app->error;
     }
 
-    my $val = encode_entities( $in_ref->{what}, '\\W\\w' );
-    if ( length $val > $self->{max_length} ) {
-        $val = substr($val, 0, $self->{max_length}) . '...';
-    }
-    return $prefix . $val;
+    return $out;
 }
 
-sub _message_into_response_event { 'out'; }
+sub _message_into_response_event { 'result' }
 
 1;
 __END__
-
-=for stopwords bot bots mailto privmsg regexen usermask usermasks
 
 =encoding utf8
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::AntiSpamMailTo - little IRC plugin to generate mailto: links that avoid dumb spam bots
+POE::Component::IRC::Plugin::ColorNamer - PoCo IRC plugin that tells the name of the color by its hex code
 
 =head1 SYNOPSIS
 
     use strict;
     use warnings;
 
-    use POE qw(Component::IRC  Component::IRC::Plugin::AntiSpamMailTo);
+    use POE qw(Component::IRC  Component::IRC::Plugin::ColorNamer);
 
     my $irc = POE::Component::IRC->spawn(
-        nick        => 'MailtoBot',
+        nick        => 'ColorNamerBot',
         server      => 'irc.freenode.net',
         port        => 6667,
-        ircname     => 'MailtoBot',
+        ircname     => 'ColorNamerBot',
     );
 
     POE::Session->create(
@@ -70,8 +76,8 @@ POE::Component::IRC::Plugin::AntiSpamMailTo - little IRC plugin to generate mail
         $irc->yield( register => 'all' );
 
         $irc->plugin_add(
-            'mailto' =>
-                POE::Component::IRC::Plugin::AntiSpamMailTo->new
+            'ColorNamer' =>
+                POE::Component::IRC::Plugin::ColorNamer->new
         );
 
         $irc->yield( connect => {} );
@@ -82,20 +88,36 @@ POE::Component::IRC::Plugin::AntiSpamMailTo - little IRC plugin to generate mail
     }
 
 
-    Zoffix> MailtoBot, mailto mailto:zoffix@cpan.org
-    <MailtoBot> &#109;&#97;&#105;&#108;&#116;&#111;&#58;&#122;&#111;
-                &#102;&#102;&#105;&#120;&#64;&#99;&#112;&#97;&#110;&#46;&#111;&#114;&#103;
+    <Zoffix> ColorNamerBot, colornamer :89043d
+    <ColorNamerBot> Brick Red (#c62d42)
+    <Zoffix> ColorNamerBot, colornamer 89043d
+    <ColorNamerBot> Siren (#7a013a)
+    <Zoffix> ColorNamerBot, colornamer fff
+    <ColorNamerBot> White (#ffffff, exact match)
 
 =head1 DESCRIPTION
 
-This module is a small L<POE::Component::IRC> plugin which uses
-L<POE::Component::IRC::Plugin> for its base. It provides interface to
-generate C<< <a href="mailto:foo@bar">... >> links that escape every single characters
-preventing dumb spam bots from harvesting the email addresses. I did not do any actual research
-on how useful this technique actually is but people who employ it say that it's effective
-as long as you encode the C<mailto:> part as well.
-The plugin accepts input from public channel events, C</notice> messages as well
-as C</msg> (private messages); although that can be configured at will.
+This module is a L<POE::Component::IRC> plugin that uses
+L<POE::Component::IRC::Plugin> for its base. It provides means to
+get a name of a color, given its hex code. This functionality is
+provided by L<App::ColorNamer> module.
+The plugin accepts input from public channel events, C</notice> messages
+as well as C</msg> (private messages).
+
+=head1 PLUGIN FUNCTION USAGE
+
+    <Zoffix> ColorNamerBot, colornamer :89043d
+    <ColorNamerBot> Brick Red (#c62d42)
+    <Zoffix> ColorNamerBot, colornamer 89043d
+    <ColorNamerBot> Siren (#7a013a)
+    <Zoffix> ColorNamerBot, colornamer fff
+    <ColorNamerBot> White (#ffffff, exact match)
+
+The plugin expects either a 3 or 6-digit hexadecimal color code as
+input, optionally prefixed by a hash symbol. This input can be
+prefixed by a colon character(:) to make the plugin use "sane colors"
+only. See L<App::ColorNamer>'s C<sane_colors()> method's description
+for more info.
 
 =head1 CONSTRUCTOR
 
@@ -103,24 +125,29 @@ as C</msg> (private messages); although that can be configured at will.
 
     # plain and simple
     $irc->plugin_add(
-        'mailto' => POE::Component::IRC::Plugin::AntiSpamMailTo->new
+        'ColorNamer' => POE::Component::IRC::Plugin::ColorNamer->new
     );
 
     # juicy flavor
     $irc->plugin_add(
-        'mailto' =>
-            POE::Component::IRC::Plugin::AntiSpamMailTo->new(
-                max_length       => 350,
+        'ColorNamer' =>
+            POE::Component::IRC::Plugin::ColorNamer->new(
                 auto             => 1,
-                response_event   => 'irc_antispam_mailto',
+                sane_colors      => [ qw/FFFAAA  AAAFFF/ ],
+                response_event   => 'irc_colornamer',
                 banned           => [ qr/aol\.com$/i ],
                 root             => [ qr/mah.net$/i ],
                 addressed        => 1,
-                trigger          => qr/^mailto\s+(?=\S)/i,
+                trigger          => qr/^color\s*namer\s+(?=\S+$)/i,
                 triggers         => {
-                    public  => qr/^mailto\s+(?=\S)/i,
-                    notice  => qr/^mailto\s+(?=\S)/i,
-                    privmsg => qr/^mailto\s+(?=\S)/i,
+                    public  => qr/^color\s*namer\s+(?=\S+$)/i,
+                    notice  => qr/^color\s*namer\s+(?=\S+$)/i,
+                    privmsg => qr/^color\s*namer\s+(?=\S+$)/i,
+                },
+                response_types   => {
+                    public      => 'public',
+                    privmsg     => 'privmsg',
+                    notice      => 'notice',
                 },
                 listen_for_input => [ qw(public notice privmsg) ],
                 eat              => 1,
@@ -129,7 +156,7 @@ as C</msg> (private messages); although that can be configured at will.
     );
 
 The C<new()> method constructs and returns a new
-C<POE::Component::IRC::Plugin::AntiSpamMailTo> object suitable to be
+C<POE::Component::IRC::Plugin::ColorNamer> object suitable to be
 fed to L<POE::Component::IRC>'s C<plugin_add> method. The constructor
 takes a few arguments, but I<all of them are optional>. B<Note:>
 you can change the values of the arguments dynamically by accessing
@@ -138,14 +165,15 @@ user during runtime simply do
 C<< push @{ $your_plugin_object->{banned} }, qr/user!mask/ >>
 The possible arguments/values are as follows:
 
-=head3 C<max_length>
+=head3 C<sane_colors>
 
-    ->new( max_length => 350 );
+    sane_colors => [ qw/FFFAAA  AAAFFF/ ],
 
-B<Optional>. Takes a positive integer as a value. Specifies the maximum length of the
-output (this does not include the prepended nickname or '...' at the end of cut output).
-If length of the output is longer than the value you specify here it will be cut off
-and C<'...'> will be appended to the output indicating it was cut off. B<Defaults to:> C<350>
+B<Optional>. Takes an arrayref as a value. If specified, this
+arrayref will be given to C<sane_colors()> L<App::ColorNamer>'s method.
+See L<App::ColorNamer>'s C<sane_colors()> method's description
+for more info.
+B<By default> is not specified.
 
 =head3 C<auto>
 
@@ -156,17 +184,17 @@ the plugin should auto respond to requests. When the C<auto>
 argument is set to a true value plugin will respond to the requesting
 person with the results automatically. When the C<auto> argument
 is set to a false value plugin will not respond and you will have to
-listen to the events emitted by the plugin to retrieve the results (see
-EMITTED EVENTS section and C<response_event> argument for details).
+listen to the events emited by the plugin to retrieve the results (see
+EMITED EVENTS section and C<response_event> argument for details).
 B<Defaults to:> C<1>.
 
 =head3 C<response_event>
 
-    ->new( response_event => 'event_name_to_receive_results' );
+    ->new( response_event => 'event_name_to_recieve_results' );
 
 B<Optional>. Takes a scalar string specifying the name of the event
-to emit when the results of the request are ready. See EMITTED EVENTS
-section for more information. B<Defaults to:> C<irc_antispam_mailto>
+to emit when the results of the request are ready. See EMITED EVENTS
+section for more information. B<Defaults to:> C<irc_colornamer>
 
 =head3 C<banned>
 
@@ -184,28 +212,28 @@ request. B<Defaults to:> C<[]> (no bans are set).
 B<Optional>. As opposed to C<banned> argument, the C<root> argument
 B<allows> access only to people whose usermasks match B<any> of
 the regexen you specify in the arrayref the argument takes as a value.
-B<By default:> it is not specified. B<Note:> as opposed to C<banned>
+B<By default:> it is not specified. B<Note:> as opposed to C<banned>,
 specifying an empty arrayref to C<root> argument will restrict
 access to everyone.
 
 =head3 C<trigger>
 
-    ->new( trigger => qr/^mailto\s+(?=\S)/i );
+    ->new( trigger => qr/^color\s*namer\s+(?=\S+$)/i);
 
 B<Optional>. Takes a regex as an argument. Messages matching this
-regex, irrelevant of the type of the message, will be considered as requests. See also
-B<addressed> option below which is enabled by default as well as
-B<triggers> option which is more specific. B<Note:> the
+regex, irrelevant of the type of the message, will be considered as
+requests. See also B<addressed> option below which is enabled by default
+as well as B<trigggers> option, which is more specific. B<Note:> the
 trigger will be B<removed> from the message, therefore make sure your
 trigger doesn't match the actual data that needs to be processed.
-B<Defaults to:> C<qr/^mailto\s+(?=\S)/i>
+B<Defaults to:> C<qr/^color\s*namer\s+(?=\S+$)/i>
 
 =head3 C<triggers>
 
     ->new( triggers => {
-            public  => qr/^mailto\s+(?=\S)/i,
-            notice  => qr/^mailto\s+(?=\S)/i,
-            privmsg => qr/^mailto\s+(?=\S)/i,
+            public  => qr/^color\s*namer\s+(?=\S+$)/i,
+            notice  => qr/^color\s*namer\s+(?=\S+$)/i,
+            privmsg => qr/^color\s*namer\s+(?=\S+$)/i,
         }
     );
 
@@ -215,14 +243,43 @@ the type of messages: channel messages, notices and private messages
 respectively. The values of those keys are regexes of the same format and
 meaning as for the C<trigger> argument (see above).
 Messages matching this
-regex will be considered as requests. The difference is that only messages of type corresponding to the key of C<triggers> hashref
+regex will be considered as requests. The difference is that only
+messages of type corresponding to the key of C<triggers> hashref
 are checked for the trigger. B<Note:> the C<trigger> will be matched
-irrelevant of the setting in C<triggers>, thus you can have one global and specific "local" triggers. See also
+irrelevant of the setting in C<triggers>, thus you can have one global
+and specific "local" triggers. See also
 B<addressed> option below which is enabled by default as well as
-B<triggers> option which is more specific. B<Note:> the
+B<trigggers> option which is more specific. B<Note:> the
 trigger will be B<removed> from the message, therefore make sure your
 trigger doesn't match the actual data that needs to be processed.
-B<Defaults to:> C<qr/^mailto\s+(?=\S)/i>
+B<Defaults to:> C<qr/^color\s*namer\s+(?=\S+$)/i> for all three triggers.
+
+=head3 C<response_types>
+
+    ->new(
+        response_types   => {
+            public      => 'public',
+            privmsg     => 'privmsg',
+            notice      => 'notice',
+        },
+    )
+
+B<Optional>. Takes a hashref with one, two or three keys as a value.
+Valid keys are C<public>, C<privmsg> and C<notice> that correspond to
+messages sent from a channel, via a private message or via a notice
+respectively. When plugin is set to auto-respond (it's the default)
+using this hashref you can control the response type based on where the
+message came from. The valid values of the keys are the same as the
+names of the keys. The B<default> is presented above - messages are
+sent the same way they came. If for example, you wish to respond to
+private messages with notices instead, simply set C<privmsg> key to
+value C<notice>:
+
+    ->new(
+        response_types   => {
+            privmsg     => 'notice',
+        },
+    )
 
 =head3 C<addressed>
 
@@ -232,7 +289,7 @@ B<Optional>. Takes either true or false values. When set to a true value
 all the public messages must be I<addressed to the bot>. In other words,
 if your bot's nickname is C<Nick> and your trigger is
 C<qr/^trig\s+/>
-you would make the request by saying C<Nick, trig EXAMPLE>.
+you would make the request by saying C<Nick, trig #fff>.
 When addressed mode is turned on, the bot's nickname, including any
 whitespace and common punctuation character will be removed before
 matching the C<trigger> (see above). When C<addressed> argument it set
@@ -277,72 +334,84 @@ is set to a true value some debugging information will be printed out.
 When C<debug> argument is set to a false value no debug info will be
 printed. B<Defaults to:> C<0>.
 
-=head1 EMITTED EVENTS
+=head1 EMITED EVENTS
 
 =head2 C<response_event>
 
-    $VAR1 = {
-        'out' => 'Zoffix,
-                &#109;&#97;&#105;&#108;&#116;&#111;&#58;&#122;&#111;&#102;&#102;&#105;&#120;&#6
-                4;&#99;&#112;&#97;&#110;&#46;&#111;&#114;&#103;',
-        'who' => 'Zoffix!n=Zoffix@unaffiliated/zoffix',
-        'what' => 'mailto:zoffix@cpan.org',
+    {
+        'result' => 'Cod Gray (#0b0b0b)',
+        'who' => 'Zoffix!sexy@i.love.debian.org',
+        'what' => '080808',
         'type' => 'public',
         'channel' => '#zofbot',
-        'message' => 'MailtoBot, mailto mailto:zoffix@cpan.org'
-    };
+        'message' => 'ColorNamerBot, colornamer 080808'
+    }
 
 The event handler set up to handle the event, name of which you've
 specified in the C<response_event> argument to the constructor
-(it defaults to C<irc_antispam_mailto>) will receive input
+(it defaults to C<irc_colornamer>) will recieve input
 every time request is completed. The input will come in C<$_[ARG0]>
 on a form of a hashref.
 The possible keys/values of that hashrefs are as follows:
 
-=head3 C<out>
+=head3 C<result>
 
     {
-        'out' => 'Zoffix,
-                &#109;&#97;&#105;&#108;&#116;&#111;&#58;&#122;&#111;&#102;&#102;&#105;&#120;&#6
-                4;&#99;&#112;&#97;&#110;&#46;&#111;&#114;&#103;',
-    }
+        'result' => 'Cod Gray (#0b0b0b)',
+    ...
 
-The C<out> key will contain the message that would be outputted to IRC when C<auto> mode
-in constructor is set to a true value (the default).
+The C<result> key will contain the output of the plugin; this
+is the string the plugin would output to the requestor if the
+C<auto> option is turned on.
 
 =head3 C<who>
 
-    { 'who' => 'Zoffix!n=Zoffix@unaffiliated/zoffix', }
+    {
+        'who' => 'Zoffix!Zoffix@i.love.debian.org',
+    ...
 
 The C<who> key will contain the user mask of the user who sent the request.
 
 =head3 C<what>
 
-    { 'what' => 'mailto:zoffix@cpan.org', }
+    {
+        'what' => '080808',
+    ...
 
 The C<what> key will contain user's message after stripping the C<trigger>
 (see CONSTRUCTOR).
 
 =head3 C<message>
 
-    { 'message' => 'MailtoBot, mailto mailto:zoffix@cpan.org' }
+    {
+        'message' => 'ColorNamerBot, colornamer 080808'
+    ...
 
 The C<message> key will contain the actual message which the user sent; that
 is before the trigger is stripped.
 
 =head3 C<type>
 
-    { 'type' => 'public', }
+    {
+        'type' => 'public',
+    ...
 
 The C<type> key will contain the "type" of the message the user have sent.
 This will be either C<public>, C<privmsg> or C<notice>.
 
 =head3 C<channel>
 
-    { 'channel' => '#zofbot', }
+    {
+        'channel' => '#zofbot',
+    ...
 
 The C<channel> key will contain the name of the channel where the message
 originated. This will only make sense if C<type> key contains C<public>.
+
+=head1 EXAMPLE
+
+The C<examples/> directory of this distribution contains a sample
+color naming IRC bot.
 
 =head1 REPOSITORY
 
@@ -369,4 +438,3 @@ See the C<LICENSE> file included in this distribution for complete
 details.
 
 =cut
-

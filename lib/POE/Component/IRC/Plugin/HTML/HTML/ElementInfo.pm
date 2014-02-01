@@ -3,7 +3,7 @@ package POE::Component::IRC::Plugin::HTML::ElementInfo;
 use warnings;
 use strict;
 
-our $VERSION = '2.001001'; # VERSION
+our $VERSION = '2.001002'; # VERSION
 
 use base 'POE::Component::IRC::Plugin::BaseWrap';
 

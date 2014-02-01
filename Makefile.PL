@@ -21,6 +21,7 @@ my %WriteMakefileArgs = (
   "LICENSE" => "perl",
   "NAME" => "POE::Component::IRC::PluginBundle::WebDevelopment",
   "PREREQ_PM" => {
+    "App::ColorNamer" => 0,
     "Carp" => 0,
     "HTML::Entities" => 0,
     "LWP::UserAgent" => 0,
@@ -35,6 +36,7 @@ my %WriteMakefileArgs = (
     "POE::Component::WWW::Alexa::TrafficRank" => 0,
     "POE::Component::WWW::DoctypeGrabber" => 0,
     "POE::Component::WWW::GetPageTitle" => 0,
+    "POE::Component::WWW::Google::PageRank" => 0,
     "POE::Component::WWW::HTMLTagAttributeCounter" => 0,
     "POE::Component::WWW::Lipsum" => 0,
     "POE::Component::WWW::WebDevout::BrowserSupportInfo" => 0,
@@ -52,7 +54,7 @@ my %WriteMakefileArgs = (
     "IPC::Open3" => 0,
     "Test::More" => 0
   },
-  "VERSION" => "2.001001",
+  "VERSION" => "2.001002",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -60,6 +62,7 @@ my %WriteMakefileArgs = (
 
 
 my %FallbackPrereqs = (
+  "App::ColorNamer" => 0,
   "Carp" => 0,
   "File::Spec" => 0,
   "HTML::Entities" => 0,
@@ -77,6 +80,7 @@ my %FallbackPrereqs = (
   "POE::Component::WWW::Alexa::TrafficRank" => 0,
   "POE::Component::WWW::DoctypeGrabber" => 0,
   "POE::Component::WWW::GetPageTitle" => 0,
+  "POE::Component::WWW::Google::PageRank" => 0,
   "POE::Component::WWW::HTMLTagAttributeCounter" => 0,
   "POE::Component::WWW::Lipsum" => 0,
   "POE::Component::WWW::WebDevout::BrowserSupportInfo" => 0,

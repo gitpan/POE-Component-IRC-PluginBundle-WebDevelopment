@@ -28,9 +28,10 @@ AttributeInfo
 Data
 WWW
 GetPageTitle
-PropertyInfo
+ColorNamer
 JavaScript
 Minifier
+PropertyInfo
 Alexa
 TrafficRank
 Syntax
@@ -40,4 +41,6 @@ HTMLTagAttributeCounter
 AntiSpamMailTo
 DoctypeGrabber
 ElementInfo
+Google
+PageRank
 Lipsum
