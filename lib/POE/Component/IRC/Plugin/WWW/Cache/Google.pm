@@ -1,61 +1,115 @@
-package POE::Component::IRC::Plugin::AntiSpamMailTo;
+package POE::Component::IRC::Plugin::WWW::Cache::Google;
 
 use warnings;
 use strict;
 
 our $VERSION = '2.001003'; # VERSION
 
-use HTML::Entities;
-use base 'POE::Component::IRC::Plugin::BaseWrap';
+use base 'POE::Component::IRC::Plugin::BasePoCoWrap';
+use POE::Component::WWW::Cache::Google;
 
 sub _make_default_args {
     return (
-        trigger          => qr/^mailto\s+(?=\S)/i,
-        response_event   => 'irc_antispam_mailto',
-        max_length       => 350,
+        response_event   => 'irc_google_cache',
+        trigger          => qr/^cache\s+(?=\S)/i,
+        line_length      => 350,
+    );
+}
+
+sub _make_poco {
+    return POE::Component::WWW::Cache::Google->spawn(
+        debug => shift->{debug},
     );
 }
 
 sub _make_response_message {
-    my ( $self, $in_ref ) = @_;
+    my $self   = shift;
+    my $in_ref = shift;
 
-    my $prefix = '';
-    if ( $in_ref->{type} eq 'public' ) {
-        $prefix = (split /!/, $in_ref->{who})[0] . ', ';
-    }
+    delete $in_ref->{content};
 
-    my $val = encode_entities( $in_ref->{what}, '\\W\\w' );
-    if ( length $val > $self->{max_length} ) {
-        $val = substr($val, 0, $self->{max_length}) . '...';
+    my $out;
+    if ( defined $in_ref->{error} ) {
+        if ( $in_ref->{error} eq q|Doesn't look like cache exists| ) {
+            $out = "No google cache found for $in_ref->{uri}";
+        }
+        else {
+            $out = "Error trying to fetch google cache: $in_ref->{error}";
+        }
     }
-    return $prefix . $val;
+    else {
+        $out = $in_ref->{cache};
+    }
+    $out = substr $out, 0, $self->{line_length};
+    my ($nick) = split /!/, $in_ref->{_who};
+    if ( $in_ref->{_type} eq 'public' ) {
+        $in_ref->{out} = "$nick, $out";
+    }
+    else {
+        $in_ref->{out} = $out;
+    }
+    return [ $in_ref->{out} ];
 }
 
-sub _message_into_response_event { 'out'; }
+sub _make_response_event {
+    my $self = shift;
+    my $in_ref = shift;
+
+    return {
+        ( map { $_ => $in_ref->{$_} }
+            qw/out cache/,
+        ),
+        (
+            exists $in_ref->{error} ? ( error => $in_ref->{error} ) : (),
+        ),
+        map { $_ => $in_ref->{"_$_"} }
+            qw/ who channel  message  type  what /,
+    }
+}
+
+sub _make_poco_call {
+    my $self = shift;
+    my $data_ref = shift;
+    my $uri = $data_ref->{what};
+    unless ( $uri =~ m{^(?:ht|f)tps?:://} ) {
+        $uri = "http://$uri";
+    }
+    $self->{poco}->cache( {
+            event       => '_poco_done',
+            uri         => $uri,
+            fetch       => 1,
+            max_size    => 100,
+            map +( "_$_" => $data_ref->{$_} ),
+                keys %$data_ref,
+        }
+    );
+}
+
 
 1;
 __END__
 
-=for stopwords bot bots mailto privmsg regexen usermask usermasks
-
 =encoding utf8
+
+=for stopwords bot privmsg regexen usermask usermasks
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::AntiSpamMailTo - little IRC plugin to generate mailto: links that avoid dumb spam bots
+POE::Component::IRC::Plugin::WWW::Cache::Google - give URIs to Google's cache pages checking if they exist
 
 =head1 SYNOPSIS
 
     use strict;
     use warnings;
 
-    use POE qw(Component::IRC  Component::IRC::Plugin::AntiSpamMailTo);
+    use POE qw(Component::IRC  Component::IRC::Plugin::WWW::Cache::Google);
 
     my $irc = POE::Component::IRC->spawn(
-        nick        => 'MailtoBot',
+        nick        => 'CacheBot',
         server      => 'irc.freenode.net',
         port        => 6667,
-        ircname     => 'MailtoBot',
+        ircname     => 'Google Cache Bot',
+        plugin_debug => 1,
     );
 
     POE::Session->create(
@@ -70,31 +124,31 @@ POE::Component::IRC::Plugin::AntiSpamMailTo - little IRC plugin to generate mail
         $irc->yield( register => 'all' );
 
         $irc->plugin_add(
-            'mailto' =>
-                POE::Component::IRC::Plugin::AntiSpamMailTo->new
+            'google_cache' =>
+                POE::Component::IRC::Plugin::WWW::Cache::Google->new
         );
 
         $irc->yield( connect => {} );
     }
 
     sub irc_001 {
-        $irc->yield( join => '#zofbot' );
+        $_[KERNEL]->post( $_[SENDER] => join => '#zofbot' );
     }
 
+    __END__
 
-    Zoffix> MailtoBot, mailto mailto:zoffix@cpan.org
-    <MailtoBot> &#109;&#97;&#105;&#108;&#116;&#111;&#58;&#122;&#111;
-                &#102;&#102;&#105;&#120;&#64;&#99;&#112;&#97;&#110;&#46;&#111;&#114;&#103;
+    <Zoffix> CacheBot, cache zoffix.com
+    <CacheBot> Zoffix, http://www.google.com/search?q=cache:zoffix.com
+    <Zoffix> CacheBot, cache non.existsant.com
+    <CacheBot> Zoffix, No google cache found for http://non.existsant.com
 
 =head1 DESCRIPTION
 
-This module is a small L<POE::Component::IRC> plugin which uses
+This module is a L<POE::Component::IRC> plugin which uses
 L<POE::Component::IRC::Plugin> for its base. It provides interface to
-generate C<< <a href="mailto:foo@bar">... >> links that escape every single characters
-preventing dumb spam bots from harvesting the email addresses. I did not do any actual research
-on how useful this technique actually is but people who employ it say that it's effective
-as long as you encode the C<mailto:> part as well.
-The plugin accepts input from public channel events, C</notice> messages as well
+see if some URI is present in Google's cache; if it is, plugin will give
+the URI pointing to that page.
+It accepts input from public channel events, C</notice> messages as well
 as C</msg> (private messages); although that can be configured at will.
 
 =head1 CONSTRUCTOR
@@ -103,24 +157,24 @@ as C</msg> (private messages); although that can be configured at will.
 
     # plain and simple
     $irc->plugin_add(
-        'mailto' => POE::Component::IRC::Plugin::AntiSpamMailTo->new
+        'google_cache' => POE::Component::IRC::Plugin::WWW::Cache::Google->new
     );
 
     # juicy flavor
     $irc->plugin_add(
-        'mailto' =>
-            POE::Component::IRC::Plugin::AntiSpamMailTo->new(
-                max_length       => 350,
+        'google_cache' =>
+            POE::Component::IRC::Plugin::WWW::Cache::Google->new(
+                line_length      => 350,
                 auto             => 1,
-                response_event   => 'irc_antispam_mailto',
+                response_event   => 'irc_google_cache',
                 banned           => [ qr/aol\.com$/i ],
-                root             => [ qr/mah.net$/i ],
                 addressed        => 1,
-                trigger          => qr/^mailto\s+(?=\S)/i,
+                root             => [ qr/mah.net$/i ],
+                trigger          => qr/^cache\s+(?=\S)/i,
                 triggers         => {
-                    public  => qr/^mailto\s+(?=\S)/i,
-                    notice  => qr/^mailto\s+(?=\S)/i,
-                    privmsg => qr/^mailto\s+(?=\S)/i,
+                    public  => qr/^EXAMPLE\s+(?=\S)/i,
+                    notice  => qr/^EXAMPLE\s+(?=\S)/i,
+                    privmsg => qr/^EXAMPLE\s+(?=\S)/i,
                 },
                 listen_for_input => [ qw(public notice privmsg) ],
                 eat              => 1,
@@ -129,23 +183,19 @@ as C</msg> (private messages); although that can be configured at will.
     );
 
 The C<new()> method constructs and returns a new
-C<POE::Component::IRC::Plugin::AntiSpamMailTo> object suitable to be
+C<POE::Component::IRC::Plugin::WWW::Cache::Google> object suitable to be
 fed to L<POE::Component::IRC>'s C<plugin_add> method. The constructor
-takes a few arguments, but I<all of them are optional>. B<Note:>
-you can change the values of the arguments dynamically by accessing
-them as hashref keys in your plugin's object; e.g. to ban some
-user during runtime simply do
-C<< push @{ $your_plugin_object->{banned} }, qr/user!mask/ >>
-The possible arguments/values are as follows:
+takes a few arguments, but I<all of them are optional>. The possible
+arguments/values are as follows:
 
-=head3 C<max_length>
+=head3 C<line_length>
 
-    ->new( max_length => 350 );
+    ->new( line_length => 350, );
 
-B<Optional>. Takes a positive integer as a value. Specifies the maximum length of the
-output (this does not include the prepended nickname or '...' at the end of cut output).
-If length of the output is longer than the value you specify here it will be cut off
-and C<'...'> will be appended to the output indicating it was cut off. B<Defaults to:> C<350>
+To prevent really "smart" people from giving the plugin utterly long URIs
+and thus spamming the channel you can set the C<line_length> argument
+which will cut off the output if it exceeds C<line_length> characters
+(this does not include the nick of the person). B<Defaults to:> C<350>
 
 =head3 C<auto>
 
@@ -166,7 +216,7 @@ B<Defaults to:> C<1>.
 
 B<Optional>. Takes a scalar string specifying the name of the event
 to emit when the results of the request are ready. See EMITTED EVENTS
-section for more information. B<Defaults to:> C<irc_antispam_mailto>
+section for more information. B<Defaults to:> C<irc_google_cache>
 
 =head3 C<banned>
 
@@ -190,7 +240,7 @@ access to everyone.
 
 =head3 C<trigger>
 
-    ->new( trigger => qr/^mailto\s+(?=\S)/i );
+    ->new( trigger => qr/^cache\s+(?=\S)/i );
 
 B<Optional>. Takes a regex as an argument. Messages matching this
 regex, irrelevant of the type of the message, will be considered as requests. See also
@@ -198,14 +248,14 @@ B<addressed> option below which is enabled by default as well as
 B<triggers> option which is more specific. B<Note:> the
 trigger will be B<removed> from the message, therefore make sure your
 trigger doesn't match the actual data that needs to be processed.
-B<Defaults to:> C<qr/^mailto\s+(?=\S)/i>
+B<Defaults to:> C<qr/^cache\s+(?=\S)/i>
 
 =head3 C<triggers>
 
     ->new( triggers => {
-            public  => qr/^mailto\s+(?=\S)/i,
-            notice  => qr/^mailto\s+(?=\S)/i,
-            privmsg => qr/^mailto\s+(?=\S)/i,
+            public  => qr/^EXAMPLE\s+(?=\S)/i,
+            notice  => qr/^EXAMPLE\s+(?=\S)/i,
+            privmsg => qr/^EXAMPLE\s+(?=\S)/i,
         }
     );
 
@@ -222,7 +272,7 @@ B<addressed> option below which is enabled by default as well as
 B<triggers> option which is more specific. B<Note:> the
 trigger will be B<removed> from the message, therefore make sure your
 trigger doesn't match the actual data that needs to be processed.
-B<Defaults to:> C<qr/^mailto\s+(?=\S)/i>
+B<By default> not set
 
 =head3 C<addressed>
 
@@ -282,50 +332,72 @@ printed. B<Defaults to:> C<0>.
 =head2 C<response_event>
 
     $VAR1 = {
-        'out' => 'Zoffix,
-                &#109;&#97;&#105;&#108;&#116;&#111;&#58;&#122;&#111;&#102;&#102;&#105;&#120;&#6
-                4;&#99;&#112;&#97;&#110;&#46;&#111;&#114;&#103;',
+        'out' => 'Zoffix, http://www.google.com/search?q=cache:www.zoffix.com',
+        'what' => 'www.zoffix.com',
         'who' => 'Zoffix!n=Zoffix@unaffiliated/zoffix',
-        'what' => 'mailto:zoffix@cpan.org',
         'type' => 'public',
         'channel' => '#zofbot',
-        'message' => 'MailtoBot, mailto mailto:zoffix@cpan.org'
+        'message' => 'CacheBot, cache www.zoffix.com',
+        'cache' => bless( do{\(my $o = 'http://www.google.com/search?q=cache:www.zoffix.com')}, 'URI::http' )
+    };
+
+    $VAR1 = {
+        'out' => 'Zoffix, No google cache found for http://non.existant.com',
+        'what' => 'non.existant.com',
+        'who' => 'Zoffix!n=Zoffix@unaffiliated/zoffix',
+        'error' => 'Doesn\'t look like cache exists',
+        'type' => 'public',
+        'channel' => '#zofbot',
+        'message' => 'CacheBot, cache non.existant.com',
+        'cache' => bless( do{\(my $o = 'http://www.google.com/search?q=cache:non.existant.com')}, 'URI::http' )
     };
 
 The event handler set up to handle the event, name of which you've
 specified in the C<response_event> argument to the constructor
-(it defaults to C<irc_antispam_mailto>) will receive input
+(it defaults to C<irc_google_cache>) will receive input
 every time request is completed. The input will come in C<$_[ARG0]>
 on a form of a hashref.
 The possible keys/values of that hashrefs are as follows:
 
+=head3 C<cache>
+
+    { 'cache' => bless( do{\(my $o = 'http://www.google.com/search?q=cache:non.existant.com')}, 'URI::http' ) }
+
+The C<cache> key will contain an instance of L<URI> object pointing to
+the requested page in Google's cache. Note that this will be the case even
+if the plugin was sure the cache doesn't point to the valid page.
+
+=head3 C<error>
+
+    { 'error' => 'Doesn\'t look like cache exists', }
+
+In case of some network error or if the page does not seem to be in google's
+cache, the C<error> key will be present and its value will be the error
+message.
+
 =head3 C<out>
 
-    {
-        'out' => 'Zoffix,
-                &#109;&#97;&#105;&#108;&#116;&#111;&#58;&#122;&#111;&#102;&#102;&#105;&#120;&#6
-                4;&#99;&#112;&#97;&#110;&#46;&#111;&#114;&#103;',
-    }
+    { 'out' => 'Zoffix, No google cache found for http://non.existant.com', }
 
-The C<out> key will contain the message that would be outputted to IRC when C<auto> mode
-in constructor is set to a true value (the default).
+The C<out> key will contain a string of whatever the plugin would normally
+spit into the IRC.
 
 =head3 C<who>
 
-    { 'who' => 'Zoffix!n=Zoffix@unaffiliated/zoffix', }
+    { 'who' => 'Zoffix!Zoffix@i.love.debian.org', }
 
 The C<who> key will contain the user mask of the user who sent the request.
 
 =head3 C<what>
 
-    { 'what' => 'mailto:zoffix@cpan.org', }
+    { 'what' => 'non.existant.com', }
 
 The C<what> key will contain user's message after stripping the C<trigger>
 (see CONSTRUCTOR).
 
 =head3 C<message>
 
-    { 'message' => 'MailtoBot, mailto mailto:zoffix@cpan.org' }
+    { 'message' => 'CacheBot, cache non.existant.com' }
 
 The C<message> key will contain the actual message which the user sent; that
 is before the trigger is stripped.
@@ -369,4 +441,3 @@ See the C<LICENSE> file included in this distribution for complete
 details.
 
 =cut
-

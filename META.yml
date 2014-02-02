@@ -20,70 +20,73 @@ name: POE-Component-IRC-PluginBundle-WebDevelopment
 provides:
   POE::Component::IRC::Plugin::AntiSpamMailTo:
     file: lib/POE/Component/IRC/Plugin/AntiSpamMailTo.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::BrowserSupport:
     file: lib/POE/Component/IRC/Plugin/BrowserSupport.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::CSS::Minifier:
     file: lib/POE/Component/IRC/Plugin/CSS/Minifier.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::CSS::PropertyInfo:
     file: lib/POE/Component/IRC/Plugin/CSS/PropertyInfo.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::CSS::PropertyInfo::Data:
     file: lib/POE/Component/IRC/Plugin/CSS/PropertyInfo/Data.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::CSS::SelectorTools:
     file: lib/POE/Component/IRC/Plugin/CSS/SelectorTools.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::ColorNamer:
     file: lib/POE/Component/IRC/Plugin/ColorNamer.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::Google::PageRank:
     file: lib/POE/Component/IRC/Plugin/Google/PageRank.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::HTML::AttributeInfo:
     file: lib/POE/Component/IRC/Plugin/HTML/AttributeInfo.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::HTML::AttributeInfo::Data:
     file: lib/POE/Component/IRC/Plugin/HTML/AttributeInfo/Data.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::HTML::ElementInfo:
     file: lib/POE/Component/IRC/Plugin/HTML/HTML/ElementInfo.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::JavaScript::Minifier:
     file: lib/POE/Component/IRC/Plugin/JavaScript/Minifier.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::Syntax::Highlight::CSS:
     file: lib/POE/Component/IRC/Plugin/Syntax/Highlight/CSS.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::Syntax::Highlight::HTML:
     file: lib/POE/Component/IRC/Plugin/Syntax/Highlight/HTML.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::Validator::CSS:
     file: lib/POE/Component/IRC/Plugin/Validator/CSS.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::Validator::HTML:
     file: lib/POE/Component/IRC/Plugin/Validator/HTML.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::WWW::Alexa::TrafficRank:
     file: lib/POE/Component/IRC/Plugin/WWW/Alexa/TrafficRank.pm
-    version: 2.001002
+    version: 2.001003
+  POE::Component::IRC::Plugin::WWW::Cache::Google:
+    file: lib/POE/Component/IRC/Plugin/WWW/Cache/Google.pm
+    version: 2.001003
   POE::Component::IRC::Plugin::WWW::DoctypeGrabber:
     file: lib/POE/Component/IRC/Plugin/WWW/DoctypeGrabber.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::WWW::GetPageTitle:
     file: lib/POE/Component/IRC/Plugin/WWW/GetPageTitle.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::WWW::HTMLTagAttributeCounter:
     file: lib/POE/Component/IRC/Plugin/WWW/HTMLTagAttributeCounter.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::Plugin::WWW::Lipsum:
     file: lib/POE/Component/IRC/Plugin/WWW/Lipsum.pm
-    version: 2.001002
+    version: 2.001003
   POE::Component::IRC::PluginBundle::WebDevelopment:
     file: lib/POE/Component/IRC/PluginBundle/WebDevelopment.pm
-    version: 2.001002
+    version: 2.001003
 requires:
   App::ColorNamer: 0
   Carp: 0
@@ -98,6 +101,7 @@ requires:
   POE::Component::Syntax::Highlight::CSS: 0
   POE::Component::Syntax::Highlight::HTML: 0
   POE::Component::WWW::Alexa::TrafficRank: 0
+  POE::Component::WWW::Cache::Google: 0
   POE::Component::WWW::DoctypeGrabber: 0
   POE::Component::WWW::GetPageTitle: 0
   POE::Component::WWW::Google::PageRank: 0
@@ -116,7 +120,7 @@ resources:
   bugtracker: https://github.com/zoffixznet/poe-component-irc-pluginbundle-webdevelopment/issues
   homepage: http://metacpan.org/release/POE-Component-IRC-PluginBundle-WebDevelopment
   repository: git://github.com/zoffixznet/poe-component-irc-pluginbundle-webdevelopment.git
-version: 2.001002
+version: 2.001003
 x_Dist_Zilla:
   perl:
     version: 5.014002
@@ -137,8 +141,11 @@ x_Dist_Zilla:
             - strict
             - warnings
             - base
+            - ExtUtils::MakeMaker
+            - IPC::Open3
+            - File::Copy
       name: '@Author::ZOFFIX/PromptIfStale'
-      version: 0.015
+      version: 0.016
     -
       class: Dist::Zilla::Plugin::GatherDir
       name: '@Author::ZOFFIX/GatherDir'
@@ -209,7 +216,7 @@ x_Dist_Zilla:
           inherit_version: 1
           meta_noindex: 1
       name: '@Author::ZOFFIX/MetaProvides::Package'
-      version: 1.15000003
+      version: 2.000000
     -
       class: Dist::Zilla::Plugin::GithubMeta
       name: '@Author::ZOFFIX/GithubMeta'
@@ -245,10 +252,6 @@ x_Dist_Zilla:
       class: Dist::Zilla::Plugin::Test::Version
       name: '@Author::ZOFFIX/Test::Version'
       version: 0.002004
-    -
-      class: Dist::Zilla::Plugin::Test::Kwalitee::Extra
-      name: '@Author::ZOFFIX/Test::Kwalitee::Extra'
-      version: v0.2.0
     -
       class: Dist::Zilla::Plugin::MetaTests
       name: '@Author::ZOFFIX/MetaTests'

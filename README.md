@@ -1,6 +1,6 @@
 # NAME
 
-POE::Component::IRC::Plugin::WebDevelopment - a collection of plugins useful for Web Development IRC bots
+POE::Component::IRC::PluginBundle::WebDevelopment - a collection of plugins useful for Web Development IRC bots
 
 # CONTENTS
 

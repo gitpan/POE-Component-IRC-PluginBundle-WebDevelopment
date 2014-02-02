@@ -34,6 +34,7 @@ my %WriteMakefileArgs = (
     "POE::Component::Syntax::Highlight::CSS" => 0,
     "POE::Component::Syntax::Highlight::HTML" => 0,
     "POE::Component::WWW::Alexa::TrafficRank" => 0,
+    "POE::Component::WWW::Cache::Google" => 0,
     "POE::Component::WWW::DoctypeGrabber" => 0,
     "POE::Component::WWW::GetPageTitle" => 0,
     "POE::Component::WWW::Google::PageRank" => 0,
@@ -54,7 +55,7 @@ my %WriteMakefileArgs = (
     "IPC::Open3" => 0,
     "Test::More" => 0
   },
-  "VERSION" => "2.001002",
+  "VERSION" => "2.001003",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -78,6 +79,7 @@ my %FallbackPrereqs = (
   "POE::Component::Syntax::Highlight::CSS" => 0,
   "POE::Component::Syntax::Highlight::HTML" => 0,
   "POE::Component::WWW::Alexa::TrafficRank" => 0,
+  "POE::Component::WWW::Cache::Google" => 0,
   "POE::Component::WWW::DoctypeGrabber" => 0,
   "POE::Component::WWW::GetPageTitle" => 0,
   "POE::Component::WWW::Google::PageRank" => 0,

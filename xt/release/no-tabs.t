@@ -24,6 +24,7 @@ my @files = (
     'lib/POE/Component/IRC/Plugin/Validator/CSS.pm',
     'lib/POE/Component/IRC/Plugin/Validator/HTML.pm',
     'lib/POE/Component/IRC/Plugin/WWW/Alexa/TrafficRank.pm',
+    'lib/POE/Component/IRC/Plugin/WWW/Cache/Google.pm',
     'lib/POE/Component/IRC/Plugin/WWW/DoctypeGrabber.pm',
     'lib/POE/Component/IRC/Plugin/WWW/GetPageTitle.pm',
     'lib/POE/Component/IRC/Plugin/WWW/HTMLTagAttributeCounter.pm',

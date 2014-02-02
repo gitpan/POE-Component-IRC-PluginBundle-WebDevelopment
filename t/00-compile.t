@@ -4,7 +4,7 @@ use warnings;
 
 # this test was generated with Dist::Zilla::Plugin::Test::Compile 2.039
 
-use Test::More  tests => 22 + ($ENV{AUTHOR_TESTING} ? 1 : 0);
+use Test::More  tests => 23 + ($ENV{AUTHOR_TESTING} ? 1 : 0);
 
 
 
@@ -26,6 +26,7 @@ my @module_files = (
     'POE/Component/IRC/Plugin/Validator/CSS.pm',
     'POE/Component/IRC/Plugin/Validator/HTML.pm',
     'POE/Component/IRC/Plugin/WWW/Alexa/TrafficRank.pm',
+    'POE/Component/IRC/Plugin/WWW/Cache/Google.pm',
     'POE/Component/IRC/Plugin/WWW/DoctypeGrabber.pm',
     'POE/Component/IRC/Plugin/WWW/GetPageTitle.pm',
     'POE/Component/IRC/Plugin/WWW/HTMLTagAttributeCounter.pm',

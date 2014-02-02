@@ -3,7 +3,7 @@ package POE::Component::IRC::Plugin::ColorNamer;
 use warnings;
 use strict;
 
-our $VERSION = '2.001002'; # VERSION
+our $VERSION = '2.001003'; # VERSION
 
 use App::ColorNamer;
 use base 'POE::Component::IRC::Plugin::BaseWrap';
@@ -45,6 +45,8 @@ sub _message_into_response_event { 'result' }
 __END__
 
 =encoding utf8
+
+=for stopwords PoCo bot privmsg regexen requestor usermask usermasks
 
 =head1 NAME
 
@@ -184,16 +186,16 @@ the plugin should auto respond to requests. When the C<auto>
 argument is set to a true value plugin will respond to the requesting
 person with the results automatically. When the C<auto> argument
 is set to a false value plugin will not respond and you will have to
-listen to the events emited by the plugin to retrieve the results (see
-EMITED EVENTS section and C<response_event> argument for details).
+listen to the events emitted by the plugin to retrieve the results (see
+EMITTED EVENTS section and C<response_event> argument for details).
 B<Defaults to:> C<1>.
 
 =head3 C<response_event>
 
-    ->new( response_event => 'event_name_to_recieve_results' );
+    ->new( response_event => 'event_name_to_receive_results' );
 
 B<Optional>. Takes a scalar string specifying the name of the event
-to emit when the results of the request are ready. See EMITED EVENTS
+to emit when the results of the request are ready. See EMITTED EVENTS
 section for more information. B<Defaults to:> C<irc_colornamer>
 
 =head3 C<banned>
@@ -223,7 +225,7 @@ access to everyone.
 B<Optional>. Takes a regex as an argument. Messages matching this
 regex, irrelevant of the type of the message, will be considered as
 requests. See also B<addressed> option below which is enabled by default
-as well as B<trigggers> option, which is more specific. B<Note:> the
+as well as B<triggers> option, which is more specific. B<Note:> the
 trigger will be B<removed> from the message, therefore make sure your
 trigger doesn't match the actual data that needs to be processed.
 B<Defaults to:> C<qr/^color\s*namer\s+(?=\S+$)/i>
@@ -249,7 +251,7 @@ are checked for the trigger. B<Note:> the C<trigger> will be matched
 irrelevant of the setting in C<triggers>, thus you can have one global
 and specific "local" triggers. See also
 B<addressed> option below which is enabled by default as well as
-B<trigggers> option which is more specific. B<Note:> the
+B<triggers> option which is more specific. B<Note:> the
 trigger will be B<removed> from the message, therefore make sure your
 trigger doesn't match the actual data that needs to be processed.
 B<Defaults to:> C<qr/^color\s*namer\s+(?=\S+$)/i> for all three triggers.
@@ -334,7 +336,7 @@ is set to a true value some debugging information will be printed out.
 When C<debug> argument is set to a false value no debug info will be
 printed. B<Defaults to:> C<0>.
 
-=head1 EMITED EVENTS
+=head1 EMITTED EVENTS
 
 =head2 C<response_event>
 
@@ -349,7 +351,7 @@ printed. B<Defaults to:> C<0>.
 
 The event handler set up to handle the event, name of which you've
 specified in the C<response_event> argument to the constructor
-(it defaults to C<irc_colornamer>) will recieve input
+(it defaults to C<irc_colornamer>) will receive input
 every time request is completed. The input will come in C<$_[ARG0]>
 on a form of a hashref.
 The possible keys/values of that hashrefs are as follows:

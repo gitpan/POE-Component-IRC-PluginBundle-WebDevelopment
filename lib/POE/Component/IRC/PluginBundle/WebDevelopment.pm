@@ -3,7 +3,7 @@ package POE::Component::IRC::PluginBundle::WebDevelopment;
 use strict;
 use warnings;
 
-our $VERSION = '2.001002'; # VERSION
+our $VERSION = '2.001003'; # VERSION
 
 q|
 Programming is 10% science, 20% ingenuity, and 70% getting the
@@ -18,7 +18,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::WebDevelopment - a collection of plugins useful for Web Development IRC bots
+POE::Component::IRC::PluginBundle::WebDevelopment - a collection of plugins useful for Web Development IRC bots
 
 =head1 CONTENTS
 

@@ -39,8 +39,9 @@ Highlight
 SelectorTools
 HTMLTagAttributeCounter
 AntiSpamMailTo
+Cache
+Google
 DoctypeGrabber
 ElementInfo
-Google
 PageRank
 Lipsum

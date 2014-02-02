@@ -26,6 +26,7 @@ examples/syntaxhighlightcss_bot.pl
 examples/syntaxhighlighthtml_bot.pl
 examples/validatorcss_bot.pl
 examples/validatorhtml_bot.pl
+examples/www-cache-google_bot.pl
 examples/wwwlipsum_bot.pl
 lib/POE/Component/IRC/Plugin/AntiSpamMailTo.pm
 lib/POE/Component/IRC/Plugin/BrowserSupport.pm
@@ -44,6 +45,7 @@ lib/POE/Component/IRC/Plugin/Syntax/Highlight/HTML.pm
 lib/POE/Component/IRC/Plugin/Validator/CSS.pm
 lib/POE/Component/IRC/Plugin/Validator/HTML.pm
 lib/POE/Component/IRC/Plugin/WWW/Alexa/TrafficRank.pm
+lib/POE/Component/IRC/Plugin/WWW/Cache/Google.pm
 lib/POE/Component/IRC/Plugin/WWW/DoctypeGrabber.pm
 lib/POE/Component/IRC/Plugin/WWW/GetPageTitle.pm
 lib/POE/Component/IRC/Plugin/WWW/HTMLTagAttributeCounter.pm
@@ -55,7 +57,6 @@ xt/author/test-eol.t
 xt/release/cpan-changes.t
 xt/release/dist-manifest.t
 xt/release/distmeta.t
-xt/release/kwalitee.t
 xt/release/minimum-version.t
 xt/release/mojibake.t
 xt/release/no-tabs.t
